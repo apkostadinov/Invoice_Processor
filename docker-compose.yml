@@ -1,0 +1,28 @@
+services:
+  api:
+    build: .
+    container_name: invoice_api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app/uploads:/app/app/uploads
+      - ./app/reports:/app/app/reports
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    container_name: invoice_db
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: invoices
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
