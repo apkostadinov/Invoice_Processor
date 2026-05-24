@@ -3,6 +3,7 @@ from app.db.init_db import init_db
 from app.db.database import SessionLocal
 from app.models.invoice import Invoice
 from app.services.document_extractor import extract_document_text
+from app.services.llm_service import test_openai
 from app.core.logging import setup_logging
 import logging
 
@@ -56,4 +57,12 @@ async def upload_invoice(file: UploadFile = File(...)):
         "invoice_id": invoice.id,
         "filename": invoice.filename,
         "text_length": len(text)
+    }
+
+@app.get("/test-openai")
+def openai_test():
+    result = test_openai()
+
+    return {
+        "response": result
     }
