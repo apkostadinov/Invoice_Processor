@@ -1,5 +1,7 @@
 services:
   api:
+    environment:
+      LOG_LEVEL: DEBUG
     build: .
     container_name: invoice_api
     ports:

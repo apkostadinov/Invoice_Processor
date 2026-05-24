@@ -1,5 +1,9 @@
 import pdfplumber
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 def extract_text_from_pdf(path: str) -> str:
     text = []
 
