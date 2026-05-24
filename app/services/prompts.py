@@ -14,6 +14,30 @@ Rules:
 - Categorize each line item into categories like:
   Dairy, Bakery, Meat, Household, Beverages, Vegetables, etc.
 
+Issuer and Receiver rules:
+- "name" is the human-readable company/person name.
+- "company_id" is a tax/VAT/registration number.
+- If unsure, infer based on format:
+  - IDs usually contain digits and/or country prefixes (e.g. BG, EU, VAT)
+  - Names usually contain words only
+- NEVER swap these fields.
+- If only one value exists, put it in "name" and set "company_id" to null.
+
+LINE ITEM RULES:
+- Each line item must be a real product/service row from the invoice
+- Do NOT merge multiple items into one
+- Do NOT invent missing items
+- If quantity is missing, assume 1.0 only if clearly implied, otherwise 1.0 but mark confidence < 0.7
+- All numbers must be numeric (no strings)
+- amount = quantity * unit_price (must be consistent)
+- If values conflict, trust OCR but lower confidence
+- Never guess prices
+
+VALIDATION RULE:
+For each line item:
+quantity * unit_price must equal amount.
+If not, correct the unit_price or amount to make it consistent.
+
 Required JSON schema:
 
 {
@@ -21,21 +45,24 @@ Required JSON schema:
   "invoice_date": "string",
   "issuer": {
     "name": "string",
-    "company_id": "string"
-  },
+    "company_id": "123456789",
+    "evidence": "123456789 found next to label ЕИК/VAT"
+  }
   "receiver": {
     "name": "string",
-    "company_id": "string"
+    "company_id": "987654321",
+    "evidence": "987654321 found next to label ЕИК/VAT"
   },
   "currency": "string",
   "total_amount": 0,
   "line_items": [
     {
-      "description": "string",
-      "quantity": 0,
-      "unit_price": 0,
-      "amount": 0,
-      "category": "string"
+      "description": "Milk 2L",
+      "quantity": 2.0,
+      "unit_price": 3.50,
+      "amount": 7.00,
+      "category": "Dairy",
+      "confidence": 0.92
     }
   ],
   "expense_summary": "string"

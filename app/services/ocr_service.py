@@ -17,6 +17,7 @@ def extract_text_with_ocr(pdf_path: str) -> str:
     for i, img in enumerate(images):
         logger.debug(f"OCR processing page {i+1}")
         img = img.convert("L")
+        img = img.resize((img.width * 2, img.height * 2))
         text = pytesseract.image_to_string(
             img,
             lang="bul+eng"

@@ -8,6 +8,7 @@ class LineItem(BaseModel):
     unit_price: float
     amount: float
     category: str
+    confidence: float = 1.0
 
 
 class Company(BaseModel):
@@ -28,3 +29,4 @@ class InvoiceData(BaseModel):
     line_items: List[LineItem]
 
     expense_summary: str
+
