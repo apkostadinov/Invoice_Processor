@@ -27,6 +27,7 @@ class InvoiceModel(Base):
     raw_text = Column(Text, nullable=True)
     extraction_method = Column(String, nullable=True)
     llm_raw_response = Column(Text, nullable=True)
+    expense_summary = Column(Text, nullable=True)
     warnings = Column(Text, nullable=True)
 
     # relationship

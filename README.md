@@ -16,6 +16,13 @@ Docker and Docker Compose.
 docker compose up --build
 ```
 
+If you change SQLAlchemy models after a previous run, reset the database volume so new columns are applied:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
 ## API
 
 Health check:

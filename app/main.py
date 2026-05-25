@@ -115,7 +115,7 @@ async def extract_invoice(file: UploadFile = File(...)):
 
     if len(structured.line_items) < 8:
         raise HTTPException(
-            status_code=422,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Invoice must contain at least 8 line items"
         )
 
@@ -240,6 +240,8 @@ def get_invoice(invoice_id: int):
             ],
 
             summary=dict(summary),
+
+            expense_summary=invoice.expense_summary,
 
             warnings=(invoice.warnings.split("\n") if invoice.warnings else [])
         )

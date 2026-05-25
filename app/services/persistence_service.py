@@ -33,6 +33,7 @@ def save_invoice(
         raw_text=raw_text,
         extraction_method=extraction_method,
         llm_raw_response=llm_raw_response,
+        expense_summary=invoice.expense_summary,
         warnings="\n".join(invoice.warnings) if invoice.warnings else None,
     )
 

@@ -10,7 +10,7 @@ class Invoice(BaseModel):
     invoice_date: Optional[str] = None
 
     issuer: Company
-    receiver: Company
+    receiver: Optional[Company] = None
 
     currency: str
     total_amount: float

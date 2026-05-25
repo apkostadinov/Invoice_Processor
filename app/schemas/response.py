@@ -11,7 +11,7 @@ class InvoiceDetailResponse(BaseModel):
     invoice_date: Optional[str]
 
     issuer: Company
-    receiver: Company
+    receiver: Optional[Company] = None
 
     currency: str
     total_amount: float
@@ -19,5 +19,7 @@ class InvoiceDetailResponse(BaseModel):
     line_items: List[LineItem]
 
     summary: Dict[str, float]
+
+    expense_summary: Optional[str] = None
 
     warnings: List[str] = []
