@@ -33,6 +33,10 @@ LINE ITEM RULES:
 - If values conflict, trust OCR but lower confidence
 - Never guess prices
 
+For each line item, include:
+- source_text: exact snippet from OCR that supports this item
+- If you cannot confidently map a line item to a specific OCR snippet, set "source_text" to null.
+
 VALIDATION RULE:
 For each line item:
 quantity * unit_price must equal amount.
@@ -56,13 +60,15 @@ Required JSON schema:
   "currency": "string",
   "total_amount": 0,
   "line_items": [
-    {
-      "description": "Milk 2L",
-      "quantity": 2.0,
-      "unit_price": 3.50,
-      "amount": 7.00,
-      "category": "Dairy",
-      "confidence": 0.92
+        {
+        "source_text": "Milk 2L 2 x 3.50 = 7.00",
+        "description": "Milk 2L",
+        "quantity": 2.0,
+        "unit_price": 3.50,
+        "amount": 7.00,
+        "category": "Dairy",
+        "confidence": 0.92
+        {
     }
   ],
   "expense_summary": "string"

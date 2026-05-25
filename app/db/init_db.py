@@ -1,5 +1,5 @@
-from app.db.database import engine, Base
-from app.models.invoice import Invoice
+from app.db.session import engine, Base
+from app.db.models import Invoice
 
 
 def init_db():

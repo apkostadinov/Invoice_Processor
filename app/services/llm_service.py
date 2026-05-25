@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 import json
 from openai import OpenAI
 
-from app.schemas.invoice_schema import InvoiceData
+from app.schemas.invoice import InvoiceData
 from app.services.prompts import INVOICE_EXTRACTION_PROMPT
 from app.core.config import OPENAI_KEY,OPENAI_MODEL, MAX_LLM_INPUT_CHARS
 
@@ -64,6 +64,9 @@ def fix_line_items(items):
         if abs(expected - item.amount) > 0.01:
             item.amount = expected
             item.confidence *= 0.9
+
+        if not item.source_text:
+            item.source_text = None
 
         fixed.append(item)
 

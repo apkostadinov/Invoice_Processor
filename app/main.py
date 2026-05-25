@@ -1,16 +1,19 @@
 from fastapi import FastAPI, UploadFile, File
 from app.db.init_db import init_db
-from app.db.database import SessionLocal
-from app.models.invoice import Invoice
+from app.db.models import Invoice
 from app.services.document_extractor import extract_document_text
 from app.services.llm_service import test_openai
 from app.core.logging import setup_logging
 import logging
 from app.services.llm_service import extract_invoice_data
-
-
-import shutil
 from pathlib import Path
+from app.db.base import Base
+from app.db.session import engine
+from app.db import models  # IMPORTANT: ensures models are imported
+from app.db.session import SessionLocal
+from app.services.persistence_service import save_invoice
+
+Base.metadata.create_all(bind=engine)
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +91,42 @@ async def upload_invoice(file: UploadFile = File(...)):
         "text_length": len(text)
     }
 
+@app.post("/api/invoices/extract")
+async def extract_invoice(file: UploadFile = File(...)):
 
+    file_path = f"app/uploads/{file.filename}"
+
+    with open(file_path, "wb") as f:
+        f.write(await file.read())
+
+    raw_text, source = extract_document_text(file_path)
+
+    structured = extract_invoice_data(raw_text)
+
+    session = SessionLocal()
+
+    try:
+        db_invoice = save_invoice(
+            session=session,
+            invoice=structured,
+            raw_text=raw_text,
+            extraction_method=source
+        )
+
+        session.commit()
+
+        return {
+            "invoice_id": db_invoice.id,
+            "status": "saved",
+            "warnings": structured.warnings
+        }
+
+    except Exception as e:
+        session.rollback()
+        raise e
+
+    finally:
+        session.close()
 
 @app.get("/test-openai")
 def openai_test():
