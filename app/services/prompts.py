@@ -16,12 +16,12 @@ Rules:
 
 Issuer and Receiver rules:
 - "name" is the human-readable company/person name.
-- "company_id" is a tax/VAT/registration number.
+- "vat_id" is a tax/VAT/registration number.
 - If unsure, infer based on format:
   - IDs usually contain digits and/or country prefixes (e.g. BG, EU, VAT)
   - Names usually contain words only
 - NEVER swap these fields.
-- If only one value exists, put it in "name" and set "company_id" to null.
+- If only one value exists, put it in "name" and set "vat_id" to null.
 
 LINE ITEM RULES:
 - Each line item must be a real product/service row from the invoice
@@ -49,26 +49,23 @@ Required JSON schema:
   "invoice_date": "string",
   "issuer": {
     "name": "string",
-    "company_id": "123456789",
-    "evidence": "123456789 found next to label ЕИК/VAT"
-  }
+    "vat_id": "BG123456789"
+  },
   "receiver": {
     "name": "string",
-    "company_id": "987654321",
-    "evidence": "987654321 found next to label ЕИК/VAT"
+    "vat_id": "BG987654321"
   },
   "currency": "string",
   "total_amount": 0,
   "line_items": [
-        {
-        "source_text": "Milk 2L 2 x 3.50 = 7.00",
-        "description": "Milk 2L",
-        "quantity": 2.0,
-        "unit_price": 3.50,
-        "amount": 7.00,
-        "category": "Dairy",
-        "confidence": 0.92
-        {
+    {
+      "source_text": "Milk 2L 2 x 3.50 = 7.00",
+      "description": "Milk 2L",
+      "quantity": 2.0,
+      "unit_price": 3.50,
+      "amount": 7.00,
+      "category": "Dairy",
+      "confidence": 0.92
     }
   ],
   "expense_summary": "string"

@@ -1,6 +1,6 @@
 import logging
 
-from app.schemas.invoice import InvoiceData
+from app.schemas.invoice import Invoice
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +11,7 @@ def clamp_confidence(value: float) -> float:
 
 
 
-def validate_invoice_data(data: InvoiceData) -> InvoiceData:
+def validate_invoice_data(data: Invoice) -> Invoice:
     warnings = []
 
     validate_line_items(data, warnings)
@@ -21,7 +21,7 @@ def validate_invoice_data(data: InvoiceData) -> InvoiceData:
     return data
 
 
-def validate_line_items(data: InvoiceData, warnings: list):
+def validate_line_items(data: Invoice, warnings: list):
     for item in data.line_items:
 
         # -------------------------
@@ -81,7 +81,7 @@ def validate_line_items(data: InvoiceData, warnings: list):
             )
 
 
-def validate_invoice_total(data: InvoiceData, warnings: list):
+def validate_invoice_total(data: Invoice, warnings: list):
 
     calculated_total = round(
         sum(item.amount for item in data.line_items),

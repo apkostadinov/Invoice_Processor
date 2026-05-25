@@ -22,10 +22,12 @@ class InvoiceModel(Base):
     currency = Column(String, nullable=False)
     total_amount = Column(Float, nullable=False)
 
+    filename = Column(String, nullable=True)
+    uploaded_at = Column(DateTime, default=datetime.now)
     raw_text = Column(Text, nullable=True)
     extraction_method = Column(String, nullable=True)
-
-    created_at = Column(DateTime, default=datetime.utcnow)
+    llm_raw_response = Column(Text, nullable=True)
+    warnings = Column(Text, nullable=True)
 
     # relationship
     line_items = relationship(

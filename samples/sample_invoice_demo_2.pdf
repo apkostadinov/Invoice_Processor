@@ -1,0 +1,70 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 754 >>
+stream
+BT
+/F1 11 Tf
+72 760 Td
+(INVOICE) Tj
+0 -15 Td
+(Invoice Number: DEMO-002) Tj
+0 -15 Td
+(Invoice Date: 2026-05-24) Tj
+0 -15 Td
+(Issuer: Fresh Foods PLC) Tj
+0 -15 Td
+(Issuer company_id: CID-102938) Tj
+0 -15 Td
+(Issuer vat_id: BG111222333) Tj
+0 -15 Td
+(Receiver: North Office OOD) Tj
+0 -15 Td
+(Receiver company_id: CID-564738) Tj
+0 -15 Td
+(Receiver vat_id: BG444555666) Tj
+0 -15 Td
+(1. Coffee Beans 2 x 12.00 = 24.00) Tj
+0 -15 Td
+(2. Tea Bags 3 x 4.50 = 13.50) Tj
+0 -15 Td
+(3. Sugar 2 x 2.20 = 4.40) Tj
+0 -15 Td
+(4. Paper Towels 4 x 3.30 = 13.20) Tj
+0 -15 Td
+(5. Mineral Water 6 x 1.10 = 6.60) Tj
+0 -15 Td
+(6. Cheese 2 x 6.80 = 13.60) Tj
+0 -15 Td
+(7. Tomatoes 3 x 2.70 = 8.10) Tj
+0 -15 Td
+(8. Soap Liquid 2 x 5.40 = 10.80) Tj
+0 -15 Td
+(Total: 94.20 BGN) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000001045 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1115
+%%EOF

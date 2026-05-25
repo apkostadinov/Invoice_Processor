@@ -1,0 +1,70 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 772 >>
+stream
+BT
+/F1 11 Tf
+72 760 Td
+(INVOICE) Tj
+0 -15 Td
+(Invoice Number: DEMO-003) Tj
+0 -15 Td
+(Invoice Date: 2026-05-23) Tj
+0 -15 Td
+(Issuer: City Supplies AD) Tj
+0 -15 Td
+(Issuer company_id: CID-909090) Tj
+0 -15 Td
+(Issuer vat_id: BG777888999) Tj
+0 -15 Td
+(Receiver: Retail Partner EOOD) Tj
+0 -15 Td
+(Receiver company_id: CID-121212) Tj
+0 -15 Td
+(Receiver vat_id: BG000111222) Tj
+0 -15 Td
+(1. Notebook A4 5 x 2.00 = 10.00) Tj
+0 -15 Td
+(2. Pen Blue 10 x 0.90 = 9.00) Tj
+0 -15 Td
+(3. Marker Set 2 x 4.50 = 9.00) Tj
+0 -15 Td
+(4. Desk Cleaner 3 x 3.60 = 10.80) Tj
+0 -15 Td
+(5. Hand Towels 4 x 2.40 = 9.60) Tj
+0 -15 Td
+(6. Batteries AA 2 x 7.20 = 14.40) Tj
+0 -15 Td
+(7. Snacks Mix 6 x 1.80 = 10.80) Tj
+0 -15 Td
+(8. Sparkling Water 8 x 1.25 = 10.00) Tj
+0 -15 Td
+(Total: 83.60 BGN) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000001063 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1133
+%%EOF

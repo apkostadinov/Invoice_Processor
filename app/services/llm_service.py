@@ -2,21 +2,21 @@ import logging
 
 from app.services.validation_service import validate_invoice_data
 
-logger = logging.getLogger(__name__)
-
 import json
 from openai import OpenAI
 
-from app.schemas.invoice import InvoiceData
+from app.schemas.invoice import Invoice
 from app.services.prompts import INVOICE_EXTRACTION_PROMPT
 from app.core.config import OPENAI_KEY,OPENAI_MODEL, MAX_LLM_INPUT_CHARS
+
+logger = logging.getLogger(__name__)
 
 client = OpenAI(api_key=OPENAI_KEY)
 openai_version = OPENAI_MODEL
 
 MAX_CHARS = MAX_LLM_INPUT_CHARS
 
-def extract_invoice_data(raw_text: str) -> InvoiceData:
+def extract_invoice_data(raw_text: str) -> tuple[Invoice, str]:
 
     if len(raw_text) > MAX_CHARS:
         raw_text = raw_text[:MAX_CHARS]
@@ -42,11 +42,11 @@ def extract_invoice_data(raw_text: str) -> InvoiceData:
 
         parsed = json.loads(content)
 
-        data = InvoiceData(**parsed)
+        data = Invoice(**parsed)
 
         data = validate_invoice_data(data)
 
-        return data
+        return data, content
 
     except Exception as e:
         raise ValueError(f"LLM parsing failed: {str(e)}")

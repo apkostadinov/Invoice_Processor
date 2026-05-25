@@ -19,3 +19,6 @@ class Invoice(BaseModel):
 
     warnings: List[str] = []
     expense_summary: Optional[str] = None
+
+
+InvoiceData = Invoice
