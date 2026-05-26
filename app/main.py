@@ -1,6 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, status
 from fastapi.responses import FileResponse
 from fastapi.responses import JSONResponse
+from fastapi.responses import RedirectResponse
 from pathlib import Path
 from contextlib import asynccontextmanager
 import logging
@@ -98,6 +99,11 @@ def validate_upload(file: UploadFile) -> None:
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/", include_in_schema=False)
+def root():
+    return RedirectResponse(url="/docs", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
 @app.post("/api/invoices/test_upload")
 async def upload_invoice(file: UploadFile = File(...)):

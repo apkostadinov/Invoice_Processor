@@ -59,6 +59,12 @@ Current suite covers:
 
 ## API
 
+After startup, you can use the built-in Swagger UI as a basic interface for evaluation:
+
+```bash
+http://localhost:8000/docs
+```
+
 Health check:
 
 ```bash
