@@ -5,10 +5,7 @@ import logging
 from app.core.logging import setup_logging
 from collections import defaultdict
 
-from app.db.init_db import init_db
 from app.db.models import InvoiceModel
-from app.db.base import Base
-from app.db.session import engine
 from app.db.session import SessionLocal
 
 from app.services.llm_service import extract_invoice_data
@@ -17,8 +14,6 @@ from app.services.llm_service import test_openai
 from app.services.persistence_service import save_invoice
 from app.services.report_service import generate_invoice_report
 from app.schemas.response import InvoiceDetailResponse
-
-Base.metadata.create_all(bind=engine)
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +37,6 @@ def validate_upload(file: UploadFile) -> None:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Only PDF files are supported"
         )
-
-@app.on_event("startup")
-def startup():
-    init_db()
-
 
 @app.get("/health")
 def health():
