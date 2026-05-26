@@ -101,3 +101,18 @@ The repository includes:
 `samples/sample_invoice_demo.pdf`
 `samples/sample_invoice_demo_2.pdf`
 `samples/sample_invoice_demo_3.pdf`
+
+## Tested Invoice Types
+
+- Digital/text PDFs with selectable text (preferred path).
+- Scanned/image PDFs that require OCR fallback.
+- Multi-line-item retail-style invoices with 8+ items.
+- Invoices with issuer/receiver IDs in VAT or company ID format.
+
+## Known Limitations
+
+- Very low-quality scans (skew, blur, heavy noise) may reduce OCR quality and line-item accuracy.
+- Complex layouts (multi-column tables, overlapping stamps, rotated pages) may produce partial extraction.
+- LLM output quality depends on OCR text quality; severe OCR corruption can lead to misclassification.
+- Extremely long invoices are truncated to `MAX_LLM_INPUT_CHARS` before sending to the LLM.
+- Current extraction supports PDF input only.

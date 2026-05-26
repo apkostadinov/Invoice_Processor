@@ -3,6 +3,7 @@ import logging
 from app.services.validation_service import validate_invoice_data
 
 import json
+from json import JSONDecodeError
 from openai import OpenAI
 
 from app.schemas.invoice import Invoice
@@ -16,40 +17,69 @@ openai_version = OPENAI_MODEL
 
 MAX_CHARS = MAX_LLM_INPUT_CHARS
 
-def extract_invoice_data(raw_text: str) -> tuple[Invoice, str]:
+def _extract_json_object(text: str) -> str:
+    start = text.find("{")
+    end = text.rfind("}")
+    if start == -1 or end == -1 or end < start:
+        raise ValueError("No JSON object found in LLM response")
+    return text[start:end + 1]
 
+
+def _parse_invoice_response(content: str) -> Invoice:
+    try:
+        parsed = json.loads(content)
+    except JSONDecodeError:
+        parsed = json.loads(_extract_json_object(content))
+    return Invoice(**parsed)
+
+
+def _request_invoice_json(prompt: str, use_json_mode: bool) -> str:
+    params = {
+        "model": openai_version,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0
+    }
+    if use_json_mode:
+        params["response_format"] = {"type": "json_object"}
+
+    response = client.chat.completions.create(**params)
+    return response.choices[0].message.content or ""
+
+
+def extract_invoice_data(raw_text: str) -> tuple[Invoice, str]:
     if len(raw_text) > MAX_CHARS:
+        original_len = len(raw_text)
         raw_text = raw_text[:MAX_CHARS]
         logger.warning(
-        f"Input text truncated from "
-        f"{len(raw_text)} to "
-        f"{MAX_LLM_INPUT_CHARS} chars ong. Truncated to {MAX_CHARS} characters")
-
-    prompt = INVOICE_EXTRACTION_PROMPT + raw_text
-    try:
-        response = client.chat.completions.create(
-            model=openai_version,
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            temperature=0
+            f"Input text truncated from {original_len} "
+            f"to {MAX_CHARS} characters"
         )
 
-        content = response.choices[0].message.content
+    prompt = INVOICE_EXTRACTION_PROMPT + raw_text
+    attempts = [
+        (prompt, True),
+        (
+            prompt + "\n\nReturn strictly one valid JSON object only.",
+            False
+        ),
+    ]
+    last_error = None
 
-        parsed = json.loads(content)
+    for attempt_index, (attempt_prompt, use_json_mode) in enumerate(attempts, start=1):
+        try:
+            content = _request_invoice_json(attempt_prompt, use_json_mode)
+            data = _parse_invoice_response(content)
+            data = validate_invoice_data(data)
+            return data, content
+        except Exception as exc:
+            last_error = exc
+            logger.warning(
+                "LLM extraction attempt %s failed: %s",
+                attempt_index,
+                str(exc),
+            )
 
-        data = Invoice(**parsed)
-
-        data = validate_invoice_data(data)
-
-        return data, content
-
-    except Exception as e:
-        raise ValueError(f"LLM parsing failed: {str(e)}")
+    raise ValueError(f"LLM parsing failed after retries: {str(last_error)}")
 
 def fix_line_items(items):
     fixed = []

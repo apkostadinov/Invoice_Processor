@@ -59,6 +59,7 @@ def save_invoice(
             )
         )
 
+    session.flush()
     session.refresh(db_invoice)
 
     return db_invoice
