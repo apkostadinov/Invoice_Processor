@@ -33,7 +33,6 @@ def extract_document_text(pdf_path: str) -> tuple[str, str]:
         return text, "pdf"
 
     logger.warning("PDF extraction failed or empty → switching to OCR")
-    duration = time.time() - start
     # fallback
     try:
         ocr_text = extract_text_with_ocr(pdf_path)

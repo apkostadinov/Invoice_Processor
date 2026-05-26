@@ -5,7 +5,7 @@ from fastapi.responses import RedirectResponse
 from pathlib import Path
 from contextlib import asynccontextmanager
 import logging
-from app.core.logging import setup_logging
+from app.core.logging_config import setup_logging
 from collections import defaultdict
 
 from app.core.config import validate_settings
@@ -26,6 +26,8 @@ from app.services.llm_service import test_openai
 from app.services.persistence_service import save_invoice
 from app.services.report_service import generate_invoice_report
 from app.schemas.response import InvoiceDetailResponse
+from app.schemas.company import Company
+from app.schemas.line_item import LineItem
 
 logger = logging.getLogger(__name__)
 
@@ -244,29 +246,31 @@ def get_invoice(invoice_id: int):
             invoice_number=invoice.invoice_number,
             invoice_date=invoice.invoice_date,
 
-            issuer={
-                "name": invoice.issuer_name,
-                "vat_id": invoice.issuer_vat_id
-            },
+            issuer=Company(
+                name=invoice.issuer_name,
+                vat_id=invoice.issuer_vat_id
+            ),
 
-            receiver={
-                "name": invoice.receiver_name,
-                "vat_id": invoice.receiver_vat_id
-            },
+            receiver=(
+                Company(
+                    name=invoice.receiver_name,
+                    vat_id=invoice.receiver_vat_id
+                ) if invoice.receiver_name else None
+            ),
 
             currency=invoice.currency,
             total_amount=invoice.total_amount,
 
             line_items=[
-                {
-                    "description": item.description,
-                    "quantity": item.quantity,
-                    "unit_price": item.unit_price,
-                    "amount": item.amount,
-                    "category": item.category,
-                    "confidence": item.confidence,
-                    "source_text": item.source_text
-                }
+                LineItem(
+                    description=item.description,
+                    quantity=item.quantity,
+                    unit_price=item.unit_price,
+                    amount=item.amount,
+                    category=item.category,
+                    confidence=item.confidence,
+                    source_text=item.source_text
+                )
                 for item in invoice.line_items
             ],
 
