@@ -5,6 +5,11 @@ from app.schemas.invoice import Invoice
 logger = logging.getLogger(__name__)
 
 MAX_REASONABLE_PRICE = 100000
+MIN_LINE_ITEMS = 8
+
+
+class InvoiceValidationError(ValueError):
+    pass
 
 def clamp_confidence(value: float) -> float:
     return max(0.0, min(1.0, value))
@@ -14,11 +19,19 @@ def clamp_confidence(value: float) -> float:
 def validate_invoice_data(data: Invoice) -> Invoice:
     warnings = []
 
+    validate_minimum_line_items(data)
     validate_line_items(data, warnings)
     validate_invoice_total(data, warnings)
 
     data.warnings = warnings
     return data
+
+
+def validate_minimum_line_items(data: Invoice) -> None:
+    if len(data.line_items) < MIN_LINE_ITEMS:
+        raise InvoiceValidationError(
+            f"Invoice must contain at least {MIN_LINE_ITEMS} line items"
+        )
 
 
 def validate_line_items(data: Invoice, warnings: list):

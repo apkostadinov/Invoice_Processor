@@ -113,12 +113,6 @@ async def extract_invoice(file: UploadFile = File(...)):
             detail=f"LLM processing failed: {str(e)}"
         )
 
-    if len(structured.line_items) < 8:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Invoice must contain at least 8 line items"
-        )
-
     session = SessionLocal()
 
     try:

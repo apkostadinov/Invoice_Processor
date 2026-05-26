@@ -1,6 +1,9 @@
 import logging
 
-from app.services.validation_service import validate_invoice_data
+from app.services.validation_service import (
+    InvoiceValidationError,
+    validate_invoice_data,
+)
 
 import json
 from json import JSONDecodeError
@@ -71,6 +74,8 @@ def extract_invoice_data(raw_text: str) -> tuple[Invoice, str]:
             data = _parse_invoice_response(content)
             data = validate_invoice_data(data)
             return data, content
+        except InvoiceValidationError:
+            raise
         except Exception as exc:
             last_error = exc
             logger.warning(
