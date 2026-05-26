@@ -1,11 +1,23 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, status
 from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse
 from pathlib import Path
 import logging
 from app.core.logging import setup_logging
 from collections import defaultdict
 
+from app.core.config import validate_settings
+from app.core.exceptions import (
+    DomainError,
+    LLMParseError,
+    OCRProcessingError,
+    PersistenceError,
+    ValidationError,
+)
+from app.db.init_db import init_db
 from app.db.models import InvoiceModel
+from app.db.base import Base
+from app.db.session import engine
 from app.db.session import SessionLocal
 
 from app.services.llm_service import extract_invoice_data
@@ -23,6 +35,44 @@ setup_logging()
 
 ALLOWED_UPLOAD_EXTENSIONS = {".pdf"}
 
+@app.exception_handler(OCRProcessingError)
+async def handle_ocr_error(_, exc: OCRProcessingError):
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": str(exc)},
+    )
+
+
+@app.exception_handler(LLMParseError)
+async def handle_llm_error(_, exc: LLMParseError):
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": str(exc)},
+    )
+
+
+@app.exception_handler(ValidationError)
+async def handle_validation_error(_, exc: ValidationError):
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": str(exc)},
+    )
+
+
+@app.exception_handler(PersistenceError)
+async def handle_persistence_error(_, exc: PersistenceError):
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": str(exc)},
+    )
+
+
+@app.exception_handler(DomainError)
+async def handle_domain_error(_, exc: DomainError):
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": str(exc)},
+    )
 
 def validate_upload(file: UploadFile) -> None:
     if not file.filename:
@@ -37,6 +87,12 @@ def validate_upload(file: UploadFile) -> None:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Only PDF files are supported"
         )
+
+@app.on_event("startup")
+def startup():
+    validate_settings()
+    init_db()
+
 
 @app.get("/health")
 def health():
@@ -54,14 +110,7 @@ async def upload_invoice(file: UploadFile = File(...)):
     with open(file_path, "wb") as f:
         f.write(await file.read())
 
-    try:
-        text, source = extract_document_text(file_path)
-    except Exception as e:
-        logger.exception("Upload extraction failed")
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Failed to extract text from PDF: {str(e)}"
-        )
+    text, source = extract_document_text(file_path)
 
     return {
         "status": "uploaded",
@@ -80,28 +129,8 @@ async def extract_invoice(file: UploadFile = File(...)):
     with open(file_path, "wb") as f:
         f.write(await file.read())
 
-    try:
-        raw_text, source = extract_document_text(file_path)
-    except Exception as e:
-        logger.exception("Document extraction failed")
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Failed to extract text from PDF: {str(e)}"
-        )
-
-    try:
-        structured, llm_raw_response = extract_invoice_data(raw_text)
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=str(e)
-        )
-    except Exception as e:
-        logger.exception("LLM processing failed")
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"LLM processing failed: {str(e)}"
-        )
+    raw_text, source = extract_document_text(file_path)
+    structured, llm_raw_response = extract_invoice_data(raw_text)
 
     session = SessionLocal()
 
@@ -122,16 +151,10 @@ async def extract_invoice(file: UploadFile = File(...)):
             "warnings": structured.warnings
         }
 
-    except HTTPException:
-        session.rollback()
-        raise
     except Exception as e:
         logger.exception("Database persistence failed")
         session.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to persist invoice: {str(e)}"
-        )
+        raise PersistenceError(f"Failed to persist invoice: {str(e)}") from e
 
     finally:
         session.close()
@@ -154,10 +177,7 @@ def generate_report(invoice_id: int):
             )
         except Exception as e:
             logger.exception("Report generation failed")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to generate report: {str(e)}"
-            )
+            raise PersistenceError(f"Failed to generate report: {str(e)}") from e
 
         return FileResponse(
             path=pdf_path,

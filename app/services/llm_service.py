@@ -1,5 +1,6 @@
 import logging
 
+from app.core.exceptions import LLMParseError
 from app.services.validation_service import (
     InvoiceValidationError,
     validate_invoice_data,
@@ -84,7 +85,7 @@ def extract_invoice_data(raw_text: str) -> tuple[Invoice, str]:
                 str(exc),
             )
 
-    raise ValueError(f"LLM parsing failed after retries: {str(last_error)}")
+    raise LLMParseError(f"LLM parsing failed after retries: {str(last_error)}")
 
 def fix_line_items(items):
     fixed = []

@@ -1,6 +1,7 @@
 from app.services.pdf_text_extractor import extract_text_from_pdf
 from app.services.ocr_service import extract_text_with_ocr
 
+from app.core.exceptions import OCRProcessingError
 import logging
 import time
 
@@ -17,7 +18,10 @@ def extract_document_text(pdf_path: str) -> tuple[str, str]:
 
     start = time.time()
 
-    text = extract_text_from_pdf(pdf_path)
+    try:
+        text = extract_text_from_pdf(pdf_path)
+    except Exception as exc:
+        raise OCRProcessingError(f"PDF text extraction failed: {str(exc)}") from exc
 
     duration = time.time() - start
 
@@ -31,7 +35,10 @@ def extract_document_text(pdf_path: str) -> tuple[str, str]:
     logger.warning("PDF extraction failed or empty → switching to OCR")
     duration = time.time() - start
     # fallback
-    ocr_text = extract_text_with_ocr(pdf_path)
+    try:
+        ocr_text = extract_text_with_ocr(pdf_path)
+    except Exception as exc:
+        raise OCRProcessingError(f"OCR fallback failed: {str(exc)}") from exc
 
     logger.info("Used OCR extraction (slow path)")
     logger.info(f"OCR extracted characters: {len(ocr_text)}")

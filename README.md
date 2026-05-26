@@ -18,6 +18,15 @@ docker compose up --build
 
 This project now uses Alembic migrations, and the API container applies migrations on startup.
 
+Required environment variables:
+
+- `DATABASE_URL`
+- `OPENAI_KEY`
+- `OPENAI_MODEL` (defaults to `gpt-5.4-mini` if not set in `.env`)
+- `MAX_LLM_INPUT_CHARS` (defaults to `15000` if not set in `.env`)
+
+The API validates configuration on startup and fails fast if required settings are missing/invalid.
+
 For schema changes:
 
 ```bash
@@ -31,6 +40,22 @@ If you need to reset local DB data:
 docker compose down -v
 docker compose up --build
 ```
+
+## Running Tests
+
+Run locally:
+
+```bash
+./.venv/bin/python -m pytest -q
+```
+
+Current suite covers:
+- health endpoint
+- upload validation
+- invoice listing
+- not-found behavior
+- extraction persistence flow (with mocked OCR/LLM)
+- report generation flow (with mocked OCR/LLM)
 
 ## API
 

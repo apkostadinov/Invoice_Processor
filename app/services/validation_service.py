@@ -1,5 +1,6 @@
 import logging
 
+from app.core.exceptions import ValidationError
 from app.schemas.invoice import Invoice
 
 logger = logging.getLogger(__name__)
@@ -8,7 +9,7 @@ MAX_REASONABLE_PRICE = 100000
 MIN_LINE_ITEMS = 8
 
 
-class InvoiceValidationError(ValueError):
+class InvoiceValidationError(ValidationError):
     pass
 
 def clamp_confidence(value: float) -> float:
