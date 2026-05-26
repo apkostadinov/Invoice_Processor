@@ -10,3 +10,4 @@ pytesseract
 Pillow
 openai
 reportlab
+alembic

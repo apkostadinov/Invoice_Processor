@@ -16,7 +16,16 @@ Docker and Docker Compose.
 docker compose up --build
 ```
 
-If you change SQLAlchemy models after a previous run, reset the database volume so new columns are applied:
+This project now uses Alembic migrations, and the API container applies migrations on startup.
+
+For schema changes:
+
+```bash
+alembic revision --autogenerate -m "describe change"
+alembic upgrade head
+```
+
+If you need to reset local DB data:
 
 ```bash
 docker compose down -v
