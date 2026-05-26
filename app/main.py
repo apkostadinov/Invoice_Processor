@@ -2,6 +2,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, status
 from fastapi.responses import FileResponse
 from fastapi.responses import JSONResponse
 from pathlib import Path
+from contextlib import asynccontextmanager
 import logging
 from app.core.logging import setup_logging
 from collections import defaultdict
@@ -16,8 +17,6 @@ from app.core.exceptions import (
 )
 from app.db.init_db import init_db
 from app.db.models import InvoiceModel
-from app.db.base import Base
-from app.db.session import engine
 from app.db.session import SessionLocal
 
 from app.services.llm_service import extract_invoice_data
@@ -29,7 +28,15 @@ from app.schemas.response import InvoiceDetailResponse
 
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    validate_settings()
+    init_db()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 setup_logging()
 
@@ -87,12 +94,6 @@ def validate_upload(file: UploadFile) -> None:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Only PDF files are supported"
         )
-
-@app.on_event("startup")
-def startup():
-    validate_settings()
-    init_db()
-
 
 @app.get("/health")
 def health():
