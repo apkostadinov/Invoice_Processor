@@ -47,6 +47,12 @@ Content-Type: multipart/form-data
 file=<invoice.pdf>
 ```
 
+List all saved invoice IDs (useful for report generation):
+
+```bash
+GET /api/invoices
+```
+
 Notes:
 `/api/invoices/test_upload` is a debug helper endpoint and does not save a receipt row in the database.
 `/api/invoices/extract` is the production flow for assignment requirements and stores parsed data and line items.
@@ -62,6 +68,26 @@ Generate and download report PDF:
 ```bash
 GET /api/invoices/{invoice_id}/report
 ```
+
+## Suggested Workflows
+
+### 1) Standard processing + reporting flow
+
+1. Upload and extract with `POST /api/invoices/extract`.
+2. Capture returned `invoice_id`.
+3. Fetch full details via `GET /api/invoices/{invoice_id}`.
+4. Generate report via `GET /api/invoices/{invoice_id}/report`.
+
+### 2) Batch processing flow
+
+1. Process multiple PDFs through `POST /api/invoices/extract`.
+2. Call `GET /api/invoices` to get all available IDs.
+3. Loop through IDs and call `GET /api/invoices/{invoice_id}/report` for each.
+
+### 3) Debug OCR/parse before persistence
+
+1. Use `POST /api/invoices/test_upload` to verify extraction quality.
+2. When extraction preview looks correct, switch to `POST /api/invoices/extract` to persist data.
 
 ## Output Files
 

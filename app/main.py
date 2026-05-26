@@ -185,6 +185,26 @@ def generate_report(invoice_id: int):
         session.close()
 
 
+@app.get("/api/invoices")
+def list_invoices():
+    session = SessionLocal()
+
+    try:
+        rows = (
+            session.query(InvoiceModel.id)
+            .order_by(InvoiceModel.id.asc())
+            .all()
+        )
+        ids = [row[0] for row in rows]
+
+        return {
+            "count": len(ids),
+            "invoice_ids": ids
+        }
+    finally:
+        session.close()
+
+
 @app.get("/api/invoices/{invoice_id}", response_model=InvoiceDetailResponse)
 def get_invoice(invoice_id: int):
     session = SessionLocal()
