@@ -1,12 +1,10 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, status
-from fastapi.responses import FileResponse
-from fastapi.responses import JSONResponse
-from fastapi.responses import RedirectResponse
-from pathlib import Path
-from contextlib import asynccontextmanager
 import logging
-from app.core.logging_config import setup_logging
 from collections import defaultdict
+from contextlib import asynccontextmanager
+from pathlib import Path
+
+from fastapi import FastAPI, File, HTTPException, UploadFile, status
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 
 from app.core.config import validate_settings
 from app.core.exceptions import (
@@ -19,12 +17,11 @@ from app.core.exceptions import (
 from app.db.init_db import init_db
 from app.db.models import InvoiceModel
 from app.db.session import SessionLocal
-
-from app.services.llm_service import extract_invoice_data
 from app.services.document_extractor import extract_document_text
-from app.services.llm_service import test_openai
+from app.services.llm_service import extract_invoice_data, test_openai
 from app.services.persistence_service import save_invoice
 from app.services.report_service import generate_invoice_report
+from app.core.logging_config import setup_logging
 from app.schemas.response import InvoiceDetailResponse
 from app.schemas.company import Company
 from app.schemas.line_item import LineItem
@@ -44,6 +41,7 @@ app = FastAPI(lifespan=lifespan)
 setup_logging()
 
 ALLOWED_UPLOAD_EXTENSIONS = {".pdf"}
+
 
 @app.exception_handler(OCRProcessingError)
 async def handle_ocr_error(_, exc: OCRProcessingError):
@@ -84,19 +82,20 @@ async def handle_domain_error(_, exc: DomainError):
         content={"detail": str(exc)},
     )
 
+
 def validate_upload(file: UploadFile) -> None:
     if not file.filename:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Missing file name"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Missing file name"
         )
 
     suffix = Path(file.filename).suffix.lower()
     if suffix not in ALLOWED_UPLOAD_EXTENSIONS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Only PDF files are supported"
+            detail="Only PDF files are supported",
         )
+
 
 @app.get("/health")
 def health():
@@ -106,6 +105,7 @@ def health():
 @app.get("/", include_in_schema=False)
 def root():
     return RedirectResponse(url="/docs", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
 
 @app.post("/api/invoices/test_upload")
 async def upload_invoice(file: UploadFile = File(...)):
@@ -126,8 +126,9 @@ async def upload_invoice(file: UploadFile = File(...)):
         "filename": file.filename,
         "extraction_method": source,
         "raw_text_length": len(text),
-        "preview": text[:500]
+        "preview": text[:500],
     }
+
 
 @app.post("/api/invoices/extract")
 async def extract_invoice(file: UploadFile = File(...)):
@@ -149,7 +150,7 @@ async def extract_invoice(file: UploadFile = File(...)):
             invoice=structured,
             raw_text=raw_text,
             extraction_method=source,
-            llm_raw_response=llm_raw_response
+            llm_raw_response=llm_raw_response,
         )
 
         session.commit()
@@ -157,7 +158,7 @@ async def extract_invoice(file: UploadFile = File(...)):
         return {
             "invoice_id": db_invoice.id,
             "status": "saved",
-            "warnings": structured.warnings
+            "warnings": structured.warnings,
         }
 
     except Exception as e:
@@ -168,6 +169,7 @@ async def extract_invoice(file: UploadFile = File(...)):
     finally:
         session.close()
 
+
 @app.get("/api/invoices/{invoice_id}/report")
 def generate_report(invoice_id: int):
 
@@ -175,15 +177,9 @@ def generate_report(invoice_id: int):
 
     try:
         try:
-            pdf_path = generate_invoice_report(
-                session=session,
-                invoice_id=invoice_id
-            )
+            pdf_path = generate_invoice_report(session=session, invoice_id=invoice_id)
         except ValueError as e:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=str(e)
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
         except Exception as e:
             logger.exception("Report generation failed")
             raise PersistenceError(f"Failed to generate report: {str(e)}") from e
@@ -191,7 +187,7 @@ def generate_report(invoice_id: int):
         return FileResponse(
             path=pdf_path,
             media_type="application/pdf",
-            filename=f"invoice_{invoice_id}_report.pdf"
+            filename=f"invoice_{invoice_id}_report.pdf",
         )
 
     finally:
@@ -203,17 +199,10 @@ def list_invoices():
     session = SessionLocal()
 
     try:
-        rows = (
-            session.query(InvoiceModel.id)
-            .order_by(InvoiceModel.id.asc())
-            .all()
-        )
+        rows = session.query(InvoiceModel.id).order_by(InvoiceModel.id.asc()).all()
         ids = [row[0] for row in rows]
 
-        return {
-            "count": len(ids),
-            "invoice_ids": ids
-        }
+        return {"count": len(ids), "invoice_ids": ids}
     finally:
         session.close()
 
@@ -224,15 +213,12 @@ def get_invoice(invoice_id: int):
 
     try:
         invoice = (
-            session.query(InvoiceModel)
-            .filter(InvoiceModel.id == invoice_id)
-            .first()
+            session.query(InvoiceModel).filter(InvoiceModel.id == invoice_id).first()
         )
 
         if not invoice:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Invoice not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Invoice not found"
             )
 
         summary = defaultdict(float)
@@ -242,25 +228,16 @@ def get_invoice(invoice_id: int):
 
         return InvoiceDetailResponse(
             id=invoice.id,
-
             invoice_number=invoice.invoice_number,
             invoice_date=invoice.invoice_date,
-
-            issuer=Company(
-                name=invoice.issuer_name,
-                vat_id=invoice.issuer_vat_id
-            ),
-
+            issuer=Company(name=invoice.issuer_name, vat_id=invoice.issuer_vat_id),
             receiver=(
-                Company(
-                    name=invoice.receiver_name,
-                    vat_id=invoice.receiver_vat_id
-                ) if invoice.receiver_name else None
+                Company(name=invoice.receiver_name, vat_id=invoice.receiver_vat_id)
+                if invoice.receiver_name
+                else None
             ),
-
             currency=invoice.currency,
             total_amount=invoice.total_amount,
-
             line_items=[
                 LineItem(
                     description=item.description,
@@ -269,26 +246,20 @@ def get_invoice(invoice_id: int):
                     amount=item.amount,
                     category=item.category,
                     confidence=item.confidence,
-                    source_text=item.source_text
+                    source_text=item.source_text,
                 )
                 for item in invoice.line_items
             ],
-
             summary=dict(summary),
-
             expense_summary=invoice.expense_summary,
-
-            warnings=(invoice.warnings.split("\n") if invoice.warnings else [])
+            warnings=(invoice.warnings.split("\n") if invoice.warnings else []),
         )
     finally:
         session.close()
-
 
 
 @app.get("/test-openai")
 def openai_test():
     result = test_openai()
 
-    return {
-        "response": result
-    }
+    return {"response": result}
